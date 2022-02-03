@@ -1,36 +1,40 @@
 package Tetris;
 
+import Tetris.BlockTypes.*;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 
-import java.awt.*;
+
 import java.util.Random;
 
 public class GameArea {
     private Cell[][] fields;
     private int height, width;
+    private int score = 0;
+    private int linesRemoved = 0;
+    private int quadrupleLinesRemoved = 0;
     private Block block;
     Random generator = new Random();
     private final App app;
+    private Block[] blockTypes = new Block[] {new Lshape(), new Ishape(), new Tshape(),
+            new Oshape(), new Zshape(), new Jshape(), new Sshape()};
 
     public GameArea(int height, int width, App app) {
         fields = new Cell[height][width];
         this.height = height;
         this.width = width;
         this.app = app;
-        this.block = new Block(this);
+        addBlock();
     }
 
     public void addBlock() {
-        int[][] shape = {{1, 0}, {1, 0}, {1, 1}};
-        this.block = new Block(this);
+        this.block = blockTypes[generator.nextInt(blockTypes.length)];
+        block.appear(width);
     }
 
     public void fall() {
         if (gameOver()) System.out.println("GAME OVER");
-//        if (block == null) addBlock();
         if (canMoveDown()) block.moveDown();
         else {
             if (block != null) {
@@ -44,6 +48,7 @@ public class GameArea {
                 addBlock();
             }
         }
+        checkLines();
     }
 
     public boolean canMoveDown() {
@@ -82,11 +87,7 @@ public class GameArea {
         }
         return true;
     }
-    public boolean canTurn() {
-        int[][] shape = block.getTurnedShape();
-        return true;
 
-    }
     public void draw(Canvas canvas, double cellSize) {
         GraphicsContext g = canvas.getGraphicsContext2D();
         g.setFill(Color.LIGHTGRAY);
@@ -145,17 +146,88 @@ public class GameArea {
 
     }
     public void turnBlock() {
+        int xPrev = block.getX();
+        int yPrev = block.getY();
         block.turn();
+        checkCollision();
+        if (checkCollision()) {
+            block.turnBack();
+            block.setX(xPrev);
+            block.setY(yPrev);
+        }
         app.actualize();
     }
     public void checkLines() {
-        for (int i = 0; i < height; i++) {
+        int linesCounter = 0;
+        for (int i = height - 1; i > 0; i--) {
             int cellsInLineCounter = 0;
             for (int j = 0; j < width; j++) {
                 if (fields[i][j] != null) cellsInLineCounter += 1;
             }
-
+            if (cellsInLineCounter == width) {
+                removeLine(i);
+                linesCounter += 1;
+                i += 1;
+            }
         }
+        score += linesCounter * 10;
+        linesRemoved += linesCounter;
+        if (linesCounter == 4) quadrupleLinesRemoved += 1;
+    }
+
+    public void removeLine(int y) {
+        for (int j = 0; j < width; j++) {
+            fields[y][j] = null;
+        }
+        app.actualize();
+        for (int i = y; i > 0; i--) {
+            for (int j = 0; j < width; j++) {
+                fields[i][j] = fields[i - 1][j];
+            }
+        }
+        for (int j = 0; j < width; j++) {
+            fields[0][j] = null;
+        }
+    }
+    public void pushBlockDown() {
+        if (canMoveDown()) {
+            score += 2;
+            block.moveDown();
+            app.actualize();
+        }
+    }
+    public boolean checkCollision() {
+        boolean collided = false;
+        int x = block.getX();
+        int y = block.getY();
+        if (block.getY() + block.getHeight() > height) {
+            block.setY(height - block.getHeight());
+            return true;
+        }
+        if (block.getX() < 0) {
+            block.setX(0);
+            return true;
+        }
+        if (block.getX() + block.getWidth() > width) {
+            block.setX(width - block.getWidth());
+            return true;
+        }
+        for (int j = 0; j < block.getWidth(); j++) {
+            if (block.getY() >= 0 && block.getShape()[0][j] == 1 && fields[block.getY()][block.getX() + j] != null) {
+                block.setX(block.getX() - (block.getWidth() - j));
+                return true;
+            }
+        }
+        for (int i = 1; i < block.getHeight(); i++) {
+            for (int j = 0; j < block.getWidth(); j++) {
+                if (block.getY() + i >= 0 && block.getY() + i < height && block.getShape()[i][j] == 1 &&
+                        fields[block.getY() + i][block.getX() + j] != null) {
+                    block.setY(block.getY() - (block.getHeight() - i));
+                    return true;
+                }
+            }
+        }
+        return false;
     }
     public int getHeight() {
         return height;
@@ -166,5 +238,14 @@ public class GameArea {
 
     public Block getBlock() {
         return block;
+    }
+    public int getScore() {
+        return score;
+    }
+    public int getLinesRemoved() {
+        return linesRemoved;
+    }
+    public int getQuadrupleLinesRemoved() {
+        return quadrupleLinesRemoved;
     }
 }
