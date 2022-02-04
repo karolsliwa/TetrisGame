@@ -11,10 +11,8 @@ import java.util.Random;
 public class GameArea {
     private Cell[][] fields;
     private int height, width;
-    private int score = 0;
-    private int linesRemoved = 0;
-    private int quadrupleLinesRemoved = 0;
     private Block block;
+    private ScoreCounter scoreCounter = new ScoreCounter(this);
     Random generator = new Random();
     private final App app;
     private Block[] blockTypes = new Block[] {new Lshape(), new Ishape(), new Tshape(),
@@ -170,9 +168,7 @@ public class GameArea {
                 i += 1;
             }
         }
-        score += linesCounter * 10;
-        linesRemoved += linesCounter;
-        if (linesCounter == 4) quadrupleLinesRemoved += 1;
+        if (linesCounter > 0) scoreCounter.linesRemoved(linesCounter);
     }
 
     public void removeLine(int y) {
@@ -191,7 +187,7 @@ public class GameArea {
     }
     public void pushBlockDown() {
         if (canMoveDown()) {
-            score += 2;
+            scoreCounter.addPoints(2);
             block.moveDown();
             app.actualize();
         }
@@ -239,13 +235,8 @@ public class GameArea {
     public Block getBlock() {
         return block;
     }
-    public int getScore() {
-        return score;
-    }
-    public int getLinesRemoved() {
-        return linesRemoved;
-    }
-    public int getQuadrupleLinesRemoved() {
-        return quadrupleLinesRemoved;
+
+    public ScoreCounter getScoreCounter() {
+        return scoreCounter;
     }
 }

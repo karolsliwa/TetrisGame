@@ -3,23 +3,15 @@ package Tetris;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 
@@ -30,10 +22,12 @@ public class App extends Application {
      private final double cellSize = 300/10d;
      private GameArea gameArea = new GameArea(rows, cols, this);
      private Scene startScreen, gameScreen, scoresScreen;
-     private Thread engineThread;
+     private GameEngine engine = new GameEngine(gameArea, this,300);
+     private Thread engineThread = new Thread(engine);
      private Stage primaryStage;
-     private VBox scoreValues;
-
+     private ScoresBoard scoresBoard = new ScoresBoard();
+     private ScoreCounter scoreCounter = gameArea.getScoreCounter();
+     private boolean pauseCondition = false;
     @Override
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
@@ -41,19 +35,14 @@ public class App extends Application {
         this.primaryStage.setTitle("Tetris");
         this.primaryStage.setScene(gameScreen);
         this.primaryStage.show();
-        GameEngine gameEngine = new GameEngine(gameArea, this, 300);
-        engineThread = new Thread(gameEngine);
-        engineThread.start();
     }
 
     public void actualize() {
         Platform.runLater(() -> {
             gameArea.draw(canvas, cellSize);
-            scoreValues.getChildren().clear();
-            scoreValues.getChildren().addAll(new Label("Score: " + gameArea.getScore()),
-                    new Label("Lines" + gameArea.getLinesRemoved()));
+            scoresBoard.actualizeScores(scoreCounter.getScore(), scoreCounter.getLvl(), scoreCounter.getLines(),
+                    scoreCounter.getQuadras(), scoreCounter.getMultiplier());
         });
-
     }
 
     public void initGameScreen() {
@@ -82,29 +71,37 @@ public class App extends Application {
         exit.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-//                primaryStage.setScene(scoresScreen);
+                engineThread.stop();
                 primaryStage.close();
             }
         });
         pause.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                pause.setText("Play");
+                if (!pauseCondition) {
+                    pause.setText("Play");
+//                    try {
+//                        scoreCounter.pauseThreads();
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+                    pauseCondition = true;
+                }
+                else {
+                    pause.setText("Pause");
+                    pauseCondition = false;
+//                    scoreCounter.renewThreads();
+                    engine.renewGame();
+                }
             }
         });
         gameArea.draw(canvas, cellSize);
         root.getChildren().add(canvas);
         root.getChildren().add(buttons);
-//        gameScreen = new Scene(root);
-        scoreValues = new VBox();
-        scoreValues.setAlignment(Pos.CENTER);
-        scoreValues.setPrefWidth(60);
-        scoreValues.setSpacing(50);
-        scoreValues.getChildren().addAll(new Label("Score: " + gameArea.getScore()),
-                new Label("Lines" + gameArea.getLinesRemoved()));
         HBox game = new HBox();
-        game.getChildren().addAll(root,scoreValues);
+        game.getChildren().addAll(root, scoresBoard);
         gameScreen = new Scene(game);
+
         EventHandler<KeyEvent> arrowKeysHandler = new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent event) {
@@ -116,16 +113,10 @@ public class App extends Application {
                 }
             }
         };
-//        primaryStage.addEventHandler(KeyEvent.KEY_PRESSED, arrowKeysHandler);
-//        canvas.setOnKeyPressed(arrowKeysHandler);
         gameScreen.setOnKeyPressed(arrowKeysHandler);
-
     }
 
-    public void setStartButton(Button button) {
-
-    }
-    public void initStartScreen() {
-
+    public boolean isPaused() {
+        return pauseCondition;
     }
 }

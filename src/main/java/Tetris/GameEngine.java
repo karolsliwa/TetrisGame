@@ -19,6 +19,12 @@ public class GameEngine implements Runnable {
     @Override
     public void run() {
         while (true) {
+            try {
+                pauseGame();
+            }
+            catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             if (gameArea.gameOver()) break;
             gameArea.fall();
             try {
@@ -26,9 +32,15 @@ public class GameEngine implements Runnable {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
             app.actualize();
-
         }
+    }
+    public synchronized void pauseGame() throws  InterruptedException {
+        while (this.app.isPaused()) {
+            wait();
+        }
+    }
+    public synchronized void renewGame() {
+        notify();
     }
 }
