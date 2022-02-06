@@ -17,7 +17,7 @@ public class GameArea {
     private final App app;
     private Block[] blockTypes = new Block[] {new Lshape(), new Ishape(), new Tshape(),
             new Oshape(), new Zshape(), new Jshape(), new Sshape()};
-
+    private boolean gameOver = false;
     public GameArea(int height, int width, App app) {
         fields = new Color[height][width];
         this.height = height;
@@ -27,14 +27,24 @@ public class GameArea {
     }
 
     public void addBlock() {
-        this.block = blockTypes[generator.nextInt(blockTypes.length)];
-        block.appear(width);
-        if (!hasSpace()) block.turn();
-        int x = generator.nextInt(blockTypes.length);
+        block = blockTypes[generator.nextInt(blockTypes.length)];
+        block.appear();
+        int attempts = 0;
+        while (!hasSpace()) {
+            if (attempts >= 100 * blockTypes.length) gameOver = true;
+            block = blockTypes[generator.nextInt(blockTypes.length)];
+            block.appear();
+            attempts += 1;
+        }
+        attempts = 0;
+        int x = generator.nextInt(width - block.getWidth());
         while (!blockFits(x)) {
-            x = generator.nextInt(blockTypes.length);
+            if (attempts >= 100 * width) gameOver = true;
+            x = generator.nextInt(width - block.getWidth());
+            attempts += 1;
         }
         block.setX(x);
+        block.setY(-block.getHeight());
     }
 
     public void fall() {
@@ -48,7 +58,8 @@ public class GameArea {
                         }
                     }
                 }
-                if (!gameOver()) addBlock();
+                checkGameOver();
+                if (!isGameOver()) addBlock();
             }
         }
         checkLines();
@@ -125,7 +136,8 @@ public class GameArea {
             g.strokeLine(j * cellSize, 0, j * cellSize, height * cellSize);
         }
     }
-    public boolean gameOver() {
+    public boolean isGameOver() {
+        gameOver = false;
         int counter = 0;
         for (int i = 0; i < width; i++) {
             if (fields[0][i] != null) {
@@ -134,7 +146,15 @@ public class GameArea {
         }
         return counter >= 4;
     }
-
+    public void checkGameOver() {
+        int counter = 0;
+        for (int i = 0; i < width; i++) {
+            if (fields[0][i] != null) {
+                counter += 1;
+            }
+        }
+        gameOver = counter >= 4;
+    }
     public void moveBLockRight() {
         if (canMoveRight()) {
             block.moveRight();
@@ -197,6 +217,7 @@ public class GameArea {
             block.moveDown();
             app.actualizeGameArea();
             app.actualizeScoresBoard();
+            checkGameOver();
         }
     }
     public boolean checkCollision() {
@@ -233,17 +254,20 @@ public class GameArea {
         return false;
     }
     public boolean blockFits(int x) {
-        for (int i = x; i < width; i++) {
-            if (fields[0][i] != null) return false;
-            if (i - x >= block.getWidth() - 1) return true;
+        block.setX(x);
+        block.setY(0);
+        for (int j = x; j < x + block.getWidth(); j++) {
+            for (int i = 0; i < block.getHeight(); i++) {
+                if (block.getShape()[i][j - x] == 1 && fields[i][j] != null) return false;
+            }
         }
-        return false;
+        return true;
+
     }
     public boolean hasSpace() {
-        int l = 0, j = 0;
-        for (int i = 0; i < width; i++) {
-            if (fields[0][i] != null) j = i + 1;
-            if (i - j >= block.getWidth() - 1) return true;
+        int r = 0;
+        for (int j = 0; j < width - block.getWidth(); j++) {
+            if (blockFits(j)) return true;
         }
         return false;
     }
@@ -258,9 +282,6 @@ public class GameArea {
         return block;
     }
 
-    public ScoreCounter getScoreCounter() {
-        return scoreCounter;
-    }
     public void setScoreCounter(ScoreCounter scoreCounter) {
         this.scoreCounter = scoreCounter;
     }

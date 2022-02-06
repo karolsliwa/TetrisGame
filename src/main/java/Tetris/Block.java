@@ -14,12 +14,13 @@ public class Block {
     private int height, width, x, y, currentShape;
     private GameArea gameArea;
     Random generator = new Random();
+
     public Block(int[][] shape) {
         this.shape = shape;
 
     }
 
-    public void appear(int boardWidth) {
+    public void appear() {
         generateShape();
         generateColor();
         y = -height;

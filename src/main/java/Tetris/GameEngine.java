@@ -18,23 +18,20 @@ public class GameEngine implements Runnable {
     @Override
     public void run() {
         while (true) {
-//            if (gameArea.gameOver()) app.endGame();
             try {
                 pauseGame();
             }
             catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            if (gameArea.gameOver()) app.endGame();
+            if (gameArea.isGameOver()) app.endGame();
             gameArea.fall();
             try {
                 Thread.sleep(this.refreshTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-//            if (gameArea.gameOver()) app.endGame();
             app.actualizeGameArea();
-//            if (gameArea.gameOver()) app.endGame();
         }
     }
     public synchronized void pauseGame() throws  InterruptedException {

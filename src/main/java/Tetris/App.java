@@ -45,12 +45,6 @@ public class App extends Application {
         this.primaryStage.show();
     }
 
-    public void actualize() {
-        Platform.runLater(() -> {
-            gameArea.draw(canvas, cellSize);
-            scoresBoard.actualizeScores();
-        });
-    }
 
     public void initGameScreen() {
         VBox root = new VBox();
