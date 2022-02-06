@@ -9,17 +9,17 @@ import javafx.scene.paint.Color;
 import java.util.Random;
 
 public class GameArea {
-    private Cell[][] fields;
+    private Color[][] fields;
     private int height, width;
     private Block block;
-    private ScoreCounter scoreCounter = new ScoreCounter(this);
+    private ScoreCounter scoreCounter;
     Random generator = new Random();
     private final App app;
     private Block[] blockTypes = new Block[] {new Lshape(), new Ishape(), new Tshape(),
             new Oshape(), new Zshape(), new Jshape(), new Sshape()};
 
     public GameArea(int height, int width, App app) {
-        fields = new Cell[height][width];
+        fields = new Color[height][width];
         this.height = height;
         this.width = width;
         this.app = app;
@@ -29,21 +29,26 @@ public class GameArea {
     public void addBlock() {
         this.block = blockTypes[generator.nextInt(blockTypes.length)];
         block.appear(width);
+        if (!hasSpace()) block.turn();
+        int x = generator.nextInt(blockTypes.length);
+        while (!blockFits(x)) {
+            x = generator.nextInt(blockTypes.length);
+        }
+        block.setX(x);
     }
 
     public void fall() {
-        if (gameOver()) System.out.println("GAME OVER");
         if (canMoveDown()) block.moveDown();
         else {
             if (block != null) {
                 for (int i = 0; i < block.getHeight(); i++) {
                     for (int j = 0; j < block.getWidth(); j++) {
                         if (block.getShape()[i][j] == 1 && block.getY() + i >= 0) {
-                            fields[block.getY() + i][block.getX() + j] = new Cell(block);
+                            fields[block.getY() + i][block.getX() + j] = block.getColor();
                         }
                     }
                 }
-                addBlock();
+                if (!gameOver()) addBlock();
             }
         }
         checkLines();
@@ -104,9 +109,9 @@ public class GameArea {
         }
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
-                Cell cell = fields[i][j];
-                if (cell != null) {
-                    g.setFill(cell.getColor());
+                Color color= fields[i][j];
+                if (color != null) {
+                    g.setFill(color);
                     g.fillRect(j * cellSize, i * cellSize, cellSize, cellSize);
                 }
             }
@@ -133,13 +138,13 @@ public class GameArea {
     public void moveBLockRight() {
         if (canMoveRight()) {
             block.moveRight();
-            app.actualize();
+            app.actualizeGameArea();
         }
     }
     public void moveBlockLeft() {
         if (canMoveLeft()) {
             block.moveLeft();
-            app.actualize();
+            app.actualizeGameArea();
         }
 
     }
@@ -153,7 +158,7 @@ public class GameArea {
             block.setX(xPrev);
             block.setY(yPrev);
         }
-        app.actualize();
+        app.actualizeGameArea();
     }
     public void checkLines() {
         int linesCounter = 0;
@@ -168,14 +173,15 @@ public class GameArea {
                 i += 1;
             }
         }
-        if (linesCounter > 0) scoreCounter.linesRemoved(linesCounter);
+        if (linesCounter > 1) scoreCounter.linesRemoved(linesCounter);
+        app.actualizeScoresBoard();
     }
 
     public void removeLine(int y) {
         for (int j = 0; j < width; j++) {
             fields[y][j] = null;
         }
-        app.actualize();
+        app.actualizeGameArea();
         for (int i = y; i > 0; i--) {
             for (int j = 0; j < width; j++) {
                 fields[i][j] = fields[i - 1][j];
@@ -189,7 +195,8 @@ public class GameArea {
         if (canMoveDown()) {
             scoreCounter.addPoints(2);
             block.moveDown();
-            app.actualize();
+            app.actualizeGameArea();
+            app.actualizeScoresBoard();
         }
     }
     public boolean checkCollision() {
@@ -225,6 +232,21 @@ public class GameArea {
         }
         return false;
     }
+    public boolean blockFits(int x) {
+        for (int i = x; i < width; i++) {
+            if (fields[0][i] != null) return false;
+            if (i - x >= block.getWidth() - 1) return true;
+        }
+        return false;
+    }
+    public boolean hasSpace() {
+        int l = 0, j = 0;
+        for (int i = 0; i < width; i++) {
+            if (fields[0][i] != null) j = i + 1;
+            if (i - j >= block.getWidth() - 1) return true;
+        }
+        return false;
+    }
     public int getHeight() {
         return height;
     }
@@ -238,5 +260,8 @@ public class GameArea {
 
     public ScoreCounter getScoreCounter() {
         return scoreCounter;
+    }
+    public void setScoreCounter(ScoreCounter scoreCounter) {
+        this.scoreCounter = scoreCounter;
     }
 }

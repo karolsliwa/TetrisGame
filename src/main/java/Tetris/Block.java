@@ -18,28 +18,10 @@ public class Block {
         this.shape = shape;
 
     }
-    public Block(int[][] shape, Color color, GameArea gameArea) {
-        this.shape = shape;
-        this.color = color;
-        height = shape.length;
-        width = shape[0].length;
-        this.y = -height;
-        this.gameArea = gameArea;
-        this.x = generator.nextInt(gameArea.getWidth() - width);
-    }
-    public Block(GameArea gameArea) {
-        generateShape();
-        this.gameArea = gameArea;
-        height = shape.length;
-        width = shape[0].length;
-//        color = generateColor();
-        y = -height;
-        x = generator.nextInt(gameArea.getWidth() - width);
-    }
+
     public void appear(int boardWidth) {
         generateShape();
         generateColor();
-        x = generator.nextInt(boardWidth - width);
         y = -height;
     }
     public void moveDown() {y += 1;}
@@ -103,7 +85,6 @@ public class Block {
     }
     public void generateColor() {
         color = colors[generator.nextInt(colors.length)];
-//        color = new Color(generator.nextFloat(), generator.nextFloat(), generator.nextFloat(), 1.0);
     }
 
     public int[][] getTurnedShape() {

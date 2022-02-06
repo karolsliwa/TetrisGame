@@ -1,30 +1,26 @@
 package Tetris;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 
 public class ScoreCounter {
-    private GameArea gameArea;
-    ScoreMultiplier scoreMultiplier = new ScoreMultiplier(this);
     private int score = 0, lvl = 0;
     private int lines = 0;
     private int quadras = 0;
     private int multiplier = 1;
-    private ArrayList<Thread> threads = new ArrayList<Thread>();
+    private boolean paused = false;
+    private ArrayList<ScoreMultiplier> threads = new ArrayList<ScoreMultiplier>();
 
-    public ScoreCounter(GameArea g) {
-        gameArea = g;
-    }
+    public ScoreCounter() {}
+
     public void addPoints(int points) {
         score += points * multiplier;
         if (score > (lvl + 1) * 200) lvl += 1;
     }
     public void increaseMultiplier(int factor) {
+        ScoreMultiplier scoreMultiplier = new ScoreMultiplier(this);
         scoreMultiplier.setFactor(factor);
-        Thread multiplierThread = new Thread(scoreMultiplier);
-        threads.add(multiplierThread);
-        multiplierThread.start();
+        threads.add(scoreMultiplier);
+        scoreMultiplier.startCountdown();
     }
     public void linesRemoved(int linesNumber) {
         addPoints(linesNumber * 10);
@@ -52,19 +48,26 @@ public class ScoreCounter {
     public int getLvl() {
         return lvl;
     }
-    public void removeThread() {
-        threads.remove(Thread.currentThread());
-        Thread.currentThread().stop();
+    public void removeThread(ScoreMultiplier scoreMultiplier) {
+        threads.remove(scoreMultiplier);
     }
-//    public synchronized void pauseThreads() throws InterruptedException {
-//        for (Thread thread : threads) {
-//            thread.pauseGame();
-//        }
-//    }
-//    public synchronized void renewThreads() {
-//        for (Thread thread : threads) {
-//            thread.notify();
-//        }
-//    }
+    public synchronized void pauseThreads() throws InterruptedException {
+        paused = true;
+    }
+    public synchronized void renewThreads() throws InterruptedException {
+        paused = false;
+        for (ScoreMultiplier s : threads) {
+            s.renewCountdown();
+        }
+    }
+    public void endThreads() {
+        for (ScoreMultiplier thread : threads) {
+            thread.stopCountdown();
+        }
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
 
 }

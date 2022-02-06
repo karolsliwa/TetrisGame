@@ -1,7 +1,6 @@
 package Tetris;
 
-import javafx.application.Platform;
-import javafx.scene.layout.GridPane;
+
 
 public class GameEngine implements Runnable {
 
@@ -19,20 +18,23 @@ public class GameEngine implements Runnable {
     @Override
     public void run() {
         while (true) {
+//            if (gameArea.gameOver()) app.endGame();
             try {
                 pauseGame();
             }
             catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            if (gameArea.gameOver()) break;
+            if (gameArea.gameOver()) app.endGame();
             gameArea.fall();
             try {
                 Thread.sleep(this.refreshTime);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            app.actualize();
+//            if (gameArea.gameOver()) app.endGame();
+            app.actualizeGameArea();
+//            if (gameArea.gameOver()) app.endGame();
         }
     }
     public synchronized void pauseGame() throws  InterruptedException {
