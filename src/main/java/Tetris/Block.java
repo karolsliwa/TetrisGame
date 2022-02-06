@@ -12,7 +12,6 @@ public class Block {
             Color.LIGHTSKYBLUE, Color.INDIGO, Color.YELLOW, Color.ORANGE, Color.FIREBRICK, Color.GREEN};
     private int[][][] shapes = new int[4][][];
     private int height, width, x, y, currentShape;
-    private GameArea gameArea;
     Random generator = new Random();
 
     public Block(int[][] shape) {
@@ -23,8 +22,8 @@ public class Block {
     public void appear() {
         generateShape();
         generateColor();
-        y = -height;
     }
+
     public void moveDown() {y += 1;}
     public void moveRight() {
         x += 1;
@@ -88,9 +87,6 @@ public class Block {
         color = colors[generator.nextInt(colors.length)];
     }
 
-    public int[][] getTurnedShape() {
-        return shapes[(currentShape + 1) % 4];
-    }
     public void setY(int y) {
         this.y = y;
     }
