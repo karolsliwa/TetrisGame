@@ -15,6 +15,7 @@ public class ScoreCounter {
     public void addPoints(int points) {
         score += points * multiplier;
         if (score > (lvl + 1) * 200) lvl += 1;
+
     }
     public void increaseMultiplier(int factor) {
         ScoreMultiplier scoreMultiplier = new ScoreMultiplier(this);
@@ -24,9 +25,10 @@ public class ScoreCounter {
     }
     public void linesRemoved(int linesNumber) {
         addPoints(linesNumber * 10);
-        increaseMultiplier(linesNumber);
+        if (linesNumber > 0) increaseMultiplier(linesNumber);
         lines += linesNumber;
         if (linesNumber == 4) quadras += 1;
+
     }
     public int getScore() {
         return score;

@@ -156,6 +156,7 @@ public class App extends Application {
             public void handle(ActionEvent event) {
                 engineThread.start();
                 scoresBoard.startTimer();
+                start.setOnAction(null);
             }
         });
         exit.setOnAction(new EventHandler<ActionEvent>() {

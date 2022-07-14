@@ -193,7 +193,8 @@ public class GameArea {
                 i += 1;
             }
         }
-        if (linesCounter > 1) scoreCounter.linesRemoved(linesCounter);
+        scoreCounter.linesRemoved(linesCounter);
+
         app.actualizeScoresBoard();
     }
 

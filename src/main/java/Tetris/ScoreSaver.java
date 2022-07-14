@@ -22,7 +22,6 @@ public class ScoreSaver {
                 return Integer.parseInt(r.get(1)) - Integer.parseInt(l.get(1)) ;
             }
         });
-        System.out.println(Integer.parseInt(String.valueOf(score)));
         FileWriter csvWriter = new FileWriter(path);
         for (List<String> rowData : rows) {
             csvWriter.append(String.join(",", rowData));
@@ -42,7 +41,6 @@ public class ScoreSaver {
         while ((row = csvReader.readLine()) != null) {
             List<String> data = Arrays.asList(row.split(","));
             rows.add(data);
-            System.out.println(data);
         }
         return rows;
     }
