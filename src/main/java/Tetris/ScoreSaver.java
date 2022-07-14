@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ScoreSaver {
 
-    private String path = "src/main/resources/file.csv";
+    private final String path = "src/main/resources/file.csv";
 
     public ScoreSaver() {
     }
@@ -35,6 +35,8 @@ public class ScoreSaver {
 
 
     public List<List<String>> getScores() throws IOException {
+        File csvFile = new File(path);
+        csvFile.createNewFile();
         BufferedReader csvReader = new BufferedReader(new FileReader(path));
         List<List<String>> rows = new ArrayList<>();
         String row;
