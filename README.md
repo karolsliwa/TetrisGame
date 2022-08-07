@@ -1,10 +1,11 @@
 # TetrisGame
-Temat projektu - tetris.
 
-W klasie GameArea w linii 196 w funkcji checklines jest napisane:
+Tetris game, done as a project for OOP classes.
 
- if (linesCounter > 1) scoreCounter.linesRemoved(linesCounter);
- 
- przez co program nie nalicza pojedynczych usuniętych linii. 
- Powinno tam być linesCounter > 0 i początkowo tak było - 
- nieopatrznie zmieniłem tę linię ostatniego dnia i nie zauważyłem błędu przed oddaniem projektu.
+Press DOWN arrow to fasten the pace of falling.
+Press UP arrow to turn falling block.
+Every field travelled with fastened pace adds 2 points to score.
+Every deleted line adds 10 points to score.
+N lines deleted simultaneously grant score multiplier which multiplies all achieved points by N for 40 seconds.
+Scores can be saved after a loss.
+
